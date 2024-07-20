@@ -1,5 +1,5 @@
-/-  c=chatbot, channels, g=groups
-|_  [=bowl:agent:gall =state:c]
+/-  cb=chatbot, channels, g=groups
+|_  [=bowl:agent:gall =state:cb]
 +|  %helpers
 :: Helper functions
 ++  detect-group
@@ -29,9 +29,9 @@
 ::  ---
 ++  say
   ::  (say /motluc-nammex/chill-chat 'Hello fellow humans!')
-  |=  [to=channel:c what=@t]
+  |=  [to=channel:cb what=@t]
   ::  send a generic text message to a channel
-  =/  nest  [%chat our.bowl channel:to]
+  =/  nest  [%chat (shipify owner.to) channel:to]
   =/  memo  :*
     ~[[%inline ~[what]]]
     author=our.bowl
@@ -44,12 +44,12 @@
   [%pass /chat/bot %agent [our.bowl %channels] %poke %channel-action !>([%channel nest action])]
 ++  tag
   :: (tag /~motluc-nammex/h00ncr3w/chill-chat/~nospur-sontud 'Teach me shrub, bro!')
-  |=  [to=whom:c what=@t]
+  |=  [to=whom:cb what=@t]
   ::  @ a user in a channel with a message
   ::  send a generic text message to a channel
-  =/  nest  [%chat our.bowl channel:to]
+  =/  nest  [%chat (shipify owner.to) channel:to]
   =/  memo  :*
-    [i=[%inline p=[i=[%ship p=~motluc-nammex] t=[i=what t=~[[%break ~]]]]] t=~]
+    [i=[%inline p=[i=[%ship p=(shipify user.to)] t=[i=what t=~[[%break ~]]]]] t=~]
     author=our.bowl
     sent=now.bowl
   ==
@@ -60,26 +60,25 @@
   [%pass /chat/bot %agent [our.bowl %channels] %poke %channel-action !>([%channel nest action])]
 ++  reply
   :: (tag /~motluc-nammex/h00ncr3w/chill-chat/~nospur-sontud 'Teach me shrub, bro!')
-  |=  [to=whom:c what=@t]
+  |=  [to=whom:cb what=@t]
   ::  @ a user in a channel with a message
   ~
 +|  %admin
 ::  Administrative tasks
 ::  ---
 ++  join
-  |=  what=group:c
+  |=  what=group:cb
   ::  Attempt to join a group
   ~
 ++  ban
-  |=  [bye=@p =group:c]
-  :: :groups &group-action-3 [[~sapruc-bostyn-motluc-nammex %chatbots] [now [%cordon %open %add-ships (silt ~sannem-ligpex ~)]]]
-  =/  =action:g  [[(shipify owner.group) name.group] [now.bowl [%cordon %open %add-ships (silt bye ~)]]]
+  |=  [ship=@p =group:cb]
+  =/  =action:g  [[(shipify owner.group) name.group] [now.bowl [%cordon %open %add-ships (silt ship ~)]]]
   =/  =wire  /chat/bot
   =/  =dock  [our.bowl %groups]
   =/  =cage  group-action-3+!>(action)
   [%pass wire %agent dock %poke cage]
 ++  role
-  |=  [what=channel:c role=term]
+  |=  [what=channel:cb role=term]
   :: Assign a role (allowing access to post, view certain channels, etc)
   ~
 +|  %events
@@ -97,13 +96,12 @@
   ::  channel-response is a mark used to interpret it (I think)
   ::  https://github.com/tloncorp/tlon-apps/blob/develop/desk/mar/channel/response.hoon
   |=  =sign:agent:gall
-  ^-  event:c
-  ?.  ?=(%fact -.sign)  *event:c
-  ?.  ?=(%channel-response -.+.sign)  *event:c
+  ^-  event:cb
+  ?.  ?=(%fact -.sign)  *event:cb
+  ?.  ?=(%channel-response -.+.sign)  *event:cb
   =/  channel-response
     !<([nest=[kind=?(%chat %diary %heap) ship=@p name=@tas] r-channel-simple-post:channels] q.cage.sign)
-  ~&  channel-response
-  ?.  ?=(%post -.+.channel-response)  *event:c
+  ?.  ?=(%post -.+.channel-response)  *event:cb
   =/  channel-kind  kind.nest.channel-response
   =/  channel  name.nest.channel-response
   =/  event  +.+.channel-response
@@ -112,12 +110,14 @@
   =/  group  (detect-group channel)
   =/  channel-owner  -:+:-:(snag 0 (skim ~(tap by channels.q.group) |=(g=[[@tas [@p @tas]] *] =(channel +.+.-.g))))
   ::  [host=@p group=@tas channel=@tas kind=?(%chat %diary %heap)]
-  ?+  -.rest  *event:c
-    %set
-      :-  [-.-.group +.-.group channel-owner channel channel-kind]
-      =/  author   -:+:-:+:+:+:rest
-      =/  content  -:-:+:+:+:rest
-      [id author content]
+  ?+  -.rest  *event:cb
+    %set  :*  id
+              [-.-.group +.-.group]
+              [channel-owner channel channel-kind]     
+              %post
+              -:+:-:+:+:+:rest :: author (i know this is hideous, will rewrite this whole arm soon)
+              -:-:+:+:+:rest
+          ==
     ::  deal with other types of incoming messages lol
   ==
   :: There are a few things that `rest` might contain
@@ -302,15 +302,17 @@
   |%
   ++  get
     |=  [from=?(%user %channel %group %global) id=@]
-    ^-  (unit (list @))
-    %-  %~  get  by
-        ?-  from  
-            %user     user.state
-            %channel  channel.state
-            %group    group.state
-            %global   global.state
-          ==
-    id
+    ^-  (list @)
+    %+  fall
+      %-  %~  get  by
+          ?-  from  
+              %user     user.state
+              %channel  channel.state
+              %group    group.state
+              %global   global.state
+            ==
+      id
+    ~
   ++  put
     |=  [from=?(%user %channel %group %global) id=@ value=(list @)]
     ?-  from  
