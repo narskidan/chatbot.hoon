@@ -100,25 +100,44 @@
   ?.  ?=(%fact -.sign)  *event:cb
   ?.  ?=(%channel-response -.+.sign)  *event:cb
   =/  channel-response
-    !<([nest=[kind=?(%chat %diary %heap) ship=@p name=@tas] r-channel-simple-post:channels] q.cage.sign)
+    !<(r-channels-simple-post:channels q.cage.sign)
   ?.  ?=(%post -.+.channel-response)  *event:cb
   =/  channel-kind  kind.nest.channel-response
+  ?.  ?=(%chat channel-kind)  *event:cb
   =/  channel  name.nest.channel-response
   =/  event  +.+.channel-response
   =/  id  id.event
   =/  rest  r-post.event
   =/  group  (detect-group channel)
   =/  channel-owner  -:+:-:(snag 0 (skim ~(tap by channels.q.group) |=(g=[[@tas [@p @tas]] *] =(channel +.+.-.g))))
-  ::  [host=@p group=@tas channel=@tas kind=?(%chat %diary %heap)]
   ?+  -.rest  *event:cb
     %set  :*  id
+              `@da`~
               [-.-.group +.-.group]
-              [channel-owner channel channel-kind]     
+              [channel-owner channel]     
               %post
               -:+:-:+:+:+:rest :: author (i know this is hideous, will rewrite this whole arm soon)
               -:-:+:+:+:rest
           ==
-    ::  deal with other types of incoming messages lol
+    %reacts  :*  id
+                `@da`~
+                [-.-.group +.-.group]
+                [channel-owner channel]     
+                %emoji
+                -:-:+:rest :: author (i know this is hideous, will rewrite this whole arm soon)
+                +:-:+:rest
+          ==
+    %reply
+          ?.  ?=(%set -.r-reply.+.rest)
+            *event:cb
+          :*  id
+              `@da`~
+              [-.-.group +.-.group]
+              [channel-owner channel] 
+              %reply
+              author.u.+:reply.r-reply.rest
+              content.u.+:reply.r-reply.rest
+          ==
   ==
   :: There are a few things that `rest` might contain
   :: 
