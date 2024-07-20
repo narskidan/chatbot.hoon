@@ -1,21 +1,19 @@
 /-  channels
 |%
++$  emoji  knot
 +$  event
-  $:  id
-      owner=@p
-      group=@tas
-      host=@p
-      channel=@tas
-      kind=?(%chat %diary %heap)]
-      :: TODO: 
-      :: content should be a ?() representing
-      :: either replies, emojis, posts, etc.
+  $:  id=time
+      parent-id=time
+      $=  group    [owner=@p name=@tas]
+      $=  channel  [host=@p name=@tas]
+      kind=?(%post %reply %emoji)
       author=@p
-      content=*
+      content=?(knot story:channels)
     ==
-+$  group     [owner=term name=term ~]
-+$  channel   [owner=term channel=term ~]
-+$  whom      [owner=term channel=term user=term ~]
++$  ship      ?(@tas @p)
++$  group     [owner=@tas name=term ~]
++$  channel   [owner=@tas channel=term ~]
++$  whom      [owner=@tas channel=term user=@tas ~]
 +$  substate  (map @ (list @))
 +$  state
   $:
