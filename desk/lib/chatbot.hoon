@@ -149,7 +149,6 @@
         %emoji
         -:-:+:rest :: author (i know this is hideous, will rewrite this whole arm soon)
         +:-:+:rest
-        +:-:+:rest
       ==
     %reply
       ?.  ?=(%set -.r-reply.+.rest)
@@ -161,7 +160,6 @@
           %reply
           author.u.+:reply.r-reply.rest
           content.u.+:reply.r-reply.rest
-          'hii'
       ==
   ==
 +|  %state
